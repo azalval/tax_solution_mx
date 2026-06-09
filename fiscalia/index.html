@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FiscalIA — PFAE Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+/* ─── RESET & BASE ─── */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;min-height:100vh;color:#1a1a1a;}
+
+/* ─── APP SHELL ─── */
+.app{display:grid;grid-template-rows:auto 1fr;height:100vh;max-width:1100px;margin:0 auto;background:#fff;border-left:1px solid #e0ddd5;border-right:1px solid #e0ddd5;}
+
+/* ─── TOPBAR ─── */
+.topbar{background:#fff;border-bottom:1px solid #e0ddd5;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;}
+.tl{display:flex;align-items:center;gap:10px;}
+.logo{width:28px;height:28px;background:#1D4ED8;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo i{color:#fff;font-size:15px;}
+.app-name{font-size:14px;font-weight:700;color:#111;}
+.regime-pill{font-size:10px;padding:2px 8px;border-radius:8px;background:#FAECE7;color:#712B13;}
+.tr{display:flex;align-items:center;gap:10px;}
+.period-btn{font-size:11px;color:#666;background:#fafaf8;border:1px solid #e0ddd5;border-radius:6px;padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.notif{width:28px;height:28px;border-radius:50%;background:#fafaf8;border:1px solid #e0ddd5;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.notif-dot{width:7px;height:7px;border-radius:50%;background:#E24B4A;position:absolute;top:4px;right:4px;border:2px solid #fff;}
+.avatar{width:28px;height:28px;border-radius:50%;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#0C447C;}
+
+/* ─── DEADLINE BANNER ─── */
+.deadline{background:#FCEBEB;border-bottom:1px solid #F09595;padding:7px 20px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.deadline i{color:#A32D2D;font-size:14px;flex-shrink:0;}
+.deadline-text{font-size:11px;color:#791F1F;flex:1;}
+.deadline-cta{font-size:10px;font-weight:600;color:#A32D2D;background:#F7C1C1;border-radius:4px;padding:3px 10px;cursor:pointer;border:none;white-space:nowrap;}
+.deadline-cta:hover{background:#f0a0a0;}
+
+/* ─── BODY LAYOUT ─── */
+.body{display:grid;grid-template-columns:190px 1fr;overflow:hidden;flex:1;}
+
+/* ─── SIDEBAR ─── */
+.sidebar{background:#fff;border-right:1px solid #e0ddd5;overflow-y:auto;padding:12px 0;}
+.nav-sec{font-size:9px;color:#aaa;text-transform:uppercase;letter-spacing:.06em;padding:10px 16px 3px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;font-size:12px;color:#666;cursor:pointer;user-select:none;border-right:2px solid transparent;}
+.nav-item:hover{background:#fafaf8;color:#111;}
+.nav-item.active{color:#185FA5;background:#EEF5FC;border-right-color:#185FA5;font-weight:600;}
+.nav-item i{font-size:16px;flex-shrink:0;}
+.nav-badge{margin-left:auto;font-size:9px;padding:1px 5px;border-radius:8px;}
+.nb-warn{background:#FAEEDA;color:#854F0B;}
+.nb-red{background:#FCEBEB;color:#A32D2D;}
+.nb-blue{background:#E6F1FB;color:#0C447C;}
+
+/* ─── MAIN CONTENT AREA ─── */
+.main{overflow-y:auto;position:relative;}
+
+/* ─── SCREEN TRANSITIONS ─── */
+.screen{display:none;padding:18px;}
+.screen.active{display:block;}
+
+/* Declaration screen has no extra padding (it has its own) */
+.screen.decl-screen{padding:0;}
+
+/* ─── DASHBOARD METRICS ─── */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.met{background:#fff;border:1px solid #e0ddd5;border-radius:10px;padding:11px 13px;}
+.met.hi-warn{border-color:#EF9F27;}
+.met.hi-red{border-color:#E24B4A;}
+.met.hi-blue{border-color:#185FA5;}
+.met.hi-purple{border-color:#534AB7;}
+.ml{font-size:10px;color:#888;margin-bottom:3px;display:flex;align-items:center;gap:3px;}
+.mv{font-size:19px;font-weight:700;color:#111;line-height:1.1;}
+.ms{font-size:10px;margin-top:2px;}
+.up-c{color:#27500A;} .dn-c{color:#A32D2D;} .mu{color:#aaa;}
+
+/* ─── DASHBOARD CARDS ─── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.card{background:#fff;border:1px solid #e0ddd5;border-radius:10px;padding:13px;}
+.ch{font-size:11px;font-weight:600;color:#111;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;}
+.ch-act{font-size:10px;color:#185FA5;cursor:pointer;}
+
+/* ─── CFDI ROWS ─── */
+.cfdi-hdr{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:5px;margin-bottom:4px;}
+.ci{background:#EAF3DE;} .ci span{color:#27500A;}
+.ce{background:#FAECE7;} .ce span{color:#712B13;}
+.cp{background:#E6F1FB;} .cp span{color:#0C447C;}
+.cfdi-hdr-title{font-size:11px;font-weight:600;}
+.cfdi-hdr-count{font-size:10px;padding:1px 5px;border-radius:4px;}
+.ci .cfdi-hdr-count{background:#C0DD97;color:#27500A;}
+.ce .cfdi-hdr-count{background:#F5C4B3;color:#712B13;}
+.cp .cfdi-hdr-count{background:#B5D4F4;color:#0C447C;}
+.cfdi-hdr-amt{font-size:12px;font-weight:700;}
+.cfdi-row-item{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:4px;}
+.cfdi-ico{width:23px;height:23px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cfdi-ico i{font-size:12px;}
+.cii{background:#EAF3DE;} .cii i{color:#3B6D11;}
+.cie{background:#FAECE7;} .cie i{color:#712B13;}
+.cfdi-name{font-size:11px;color:#111;flex:1;}
+.cfdi-date{font-size:10px;color:#aaa;}
+.cfdi-val{font-size:11px;font-weight:600;color:#111;}
+.cfdi-tag{font-size:9px;padding:1px 4px;border-radius:3px;margin-left:4px;}
+.tok{background:#EAF3DE;color:#27500A;}
+.twrn{background:#FAEEDA;color:#633806;}
+
+/* ─── EXPENSE BARS ─── */
+.exp-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.exp-cat{font-size:11px;color:#666;flex:1;}
+.exp-bar{flex:2;height:5px;background:#f0ede8;border-radius:3px;overflow:hidden;}
+.exp-fill{height:100%;border-radius:3px;background:#378ADD;}
+.exp-amt{font-size:11px;font-weight:600;color:#111;min-width:75px;text-align:right;}
+.exp-ok{font-size:9px;padding:1px 4px;border-radius:3px;background:#EAF3DE;color:#27500A;}
+.exp-warn{font-size:9px;padding:1px 4px;border-radius:3px;background:#FAEEDA;color:#633806;}
+
+/* ─── CANCEL ALERT ─── */
+.cancel-alert{background:#FAEEDA;border:1px solid #EF9F27;border-radius:8px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;}
+.cancel-alert i{color:#854F0B;font-size:16px;flex-shrink:0;margin-top:1px;}
+.cancel-alert-body{flex:1;}
+.cancel-alert-title{font-size:12px;font-weight:600;color:#633806;margin-bottom:2px;}
+.cancel-alert-sub{font-size:11px;color:#854F0B;}
+.cancel-cta{font-size:10px;font-weight:600;color:#854F0B;background:#FAC775;border:none;border-radius:4px;padding:3px 9px;cursor:pointer;margin-top:5px;display:inline-block;}
+
+/* ─── FILING CARDS ─── */
+.filing-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.filing-block{border:1px solid #e0ddd5;border-radius:10px;overflow:hidden;}
+.fb-isr .fb-hdr{background:#E6F1FB;}
+.fb-iva .fb-hdr{background:#EEEDFE;}
+.fb-hdr{padding:9px 13px;display:flex;align-items:center;justify-content:space-between;}
+.fb-title{font-size:12px;font-weight:600;}
+.fb-isr .fb-title{color:#0C447C;}
+.fb-iva .fb-title{color:#3C3489;}
+.fb-body{padding:11px 13px;background:#fff;}
+.fb-amount{font-size:20px;font-weight:700;margin-bottom:2px;}
+.fb-isr .fb-amount{color:#0C447C;}
+.fb-iva .fb-amount{color:#3C3489;}
+.fb-sub{font-size:10px;color:#888;margin-bottom:10px;}
+.fb-deadline{font-size:10px;color:#A32D2D;display:flex;align-items:center;gap:3px;margin-bottom:10px;}
+.fb-btn-isr{background:#185FA5;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;width:100%;justify-content:center;}
+.fb-btn-iva{background:#534AB7;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;width:100%;justify-content:center;}
+.fb-btn-isr:hover{background:#1350A0;}
+.fb-btn-iva:hover{background:#3C3489;}
+
+/* ─── TREND CHART ─── */
+.bar-chart{display:flex;align-items:flex-end;gap:7px;height:72px;margin-bottom:8px;}
+.bar-grp{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.bar-pair{display:flex;gap:2px;align-items:flex-end;width:100%;}
+.bar-seg{border-radius:3px 3px 0 0;flex:1;}
+.bar-mo{font-size:9px;color:#aaa;text-align:center;}
+.chart-leg{display:flex;gap:12px;}
+.leg-i{display:flex;align-items:center;gap:4px;font-size:10px;color:#666;}
+.leg-sq{width:8px;height:8px;border-radius:2px;}
+
+/* ─── DECLARATION SCREEN ─── */
+/* Reuse the declaration styles but scope them */
+.decl-wrap{background:#fff;overflow:hidden;}
+.decl-back{display:flex;align-items:center;gap:8px;padding:10px 20px;background:#fafaf8;border-bottom:1px solid #e0ddd5;cursor:pointer;font-size:12px;color:#185FA5;font-weight:600;}
+.decl-back:hover{background:#EEF5FC;}
+.decl-back i{font-size:16px;}
+
+/* Declaration inner styles */
+.d-hdr{background:#fff;border-bottom:1px solid #e0ddd5;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.d-title{font-size:13px;font-weight:700;color:#111;}
+.d-meta{font-size:11px;color:#888;margin-top:2px;}
+.d-badges{display:flex;gap:6px;flex-wrap:wrap;}
+.d-badge{font-size:10px;padding:2px 8px;border-radius:8px;}
+.dbw{background:#FAEEDA;color:#633806;} .dbb{background:#E6F1FB;color:#0C447C;} .dbg{background:#f1efe8;color:#5f5e5a;}
+
+.d-legend{background:#fafaf8;border-bottom:1px solid #e0ddd5;padding:7px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.d-li{display:flex;align-items:center;gap:4px;font-size:10px;color:#666;}
+.d-ls{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.dlr{background:#FCEBEB;border:1.5px solid #E24B4A;} .dla{background:#FAEEDA;border:1.5px solid #EF9F27;}
+.dlg{background:#EAF3DE;border:1.5px solid #1D9E75;} .dlp{background:#EEEDFE;border:1.5px solid #534AB7;}
+
+.d-tabs{display:flex;background:#fff;border-bottom:1px solid #e0ddd5;overflow-x:auto;}
+.d-tab{padding:9px 13px;font-size:11px;color:#888;white-space:nowrap;border-bottom:2px solid transparent;display:flex;align-items:center;gap:4px;}
+.d-tab.on{color:#185FA5;border-bottom-color:#185FA5;font-weight:600;}
+.d-tdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+.d-sec{padding:14px 20px;border-bottom:1px solid #e0ddd5;}
+.d-sec:last-child{border-bottom:none;}
+.d-sh{font-size:11px;font-weight:700;color:#111;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.d-sb{font-size:9px;padding:2px 5px;border-radius:4px;}
+.dsi{background:#E6F1FB;color:#0C447C;} .dsv{background:#EEEDFE;color:#3C3489;} .dsp{background:#EAF3DE;color:#27500A;}
+
+.d-fg{display:grid;gap:8px;margin-bottom:8px;}
+.d-g2{grid-template-columns:1fr 1fr;} .d-g3{grid-template-columns:1fr 1fr 1fr;} .d-g4{grid-template-columns:1fr 1fr 1fr 1fr;}
+
+.d-f{display:flex;flex-direction:column;gap:3px;}
+.d-fl{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:3px;flex-wrap:wrap;line-height:1.5;}
+.d-pen{color:#ccc;font-size:11px;}
+.d-fv{font-size:12px;font-weight:600;padding:6px 9px;border-radius:6px;border:1px solid #e0ddd5;background:#fafaf8;color:#111;}
+.d-fa{color:#0C447C;background:#E6F1FB;border-color:#B5D4F4;}
+.d-fv2{color:#3C3489;background:#EEEDFE;border-color:#AFA9EC;}
+.d-fe{color:#111;background:#fff;border-color:#ccc;}
+.d-fc{color:#27500A;background:#EAF3DE;border-color:#97C459;}
+.d-ti{color:#0C447C;background:#E6F1FB;border:2px solid #185FA5;font-size:14px;}
+.d-tv{color:#3C3489;background:#EEEDFE;border:2px solid #534AB7;font-size:14px;}
+.d-z{color:#bbb;}
+.d-ur{background:#FCEBEB!important;border:2px solid #E24B4A!important;color:#791F1F!important;}
+.d-ua{background:#FAEEDA!important;border:2px solid #EF9F27!important;color:#633806!important;}
+.d-ud{background:#EAF3DE!important;border:2px solid #1D9E75!important;color:#27500A!important;}
+.d-un{background:#EEEDFE!important;border:2px solid #534AB7!important;color:#3C3489!important;}
+.d-cf{font-size:8px;padding:1px 4px;border-radius:3px;font-weight:700;white-space:nowrap;}
+.dcr{background:#E24B4A;color:#fff;} .dca{background:#EF9F27;color:#fff;} .dcg{background:#1D9E75;color:#fff;} .dcn{background:#534AB7;color:#fff;}
+.d-ta{font-size:8px;padding:1px 4px;border-radius:3px;background:#E6F1FB;color:#0C447C;}
+.d-tv3{font-size:8px;padding:1px 4px;border-radius:3px;background:#EEEDFE;color:#3C3489;}
+.d-tc{font-size:8px;padding:1px 4px;border-radius:3px;background:#EAF3DE;color:#27500A;}
+.d-sr{background:#fafaf8;border-radius:7px;padding:10px 12px;margin-bottom:8px;}
+.d-sl{font-size:10px;font-weight:700;color:#111;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.d-sl i{font-size:13px;color:#888;}
+.d-divl{border:none;border-top:1px solid #e0ddd5;margin:10px 0;}
+.d-pt{width:100%;border-collapse:collapse;}
+.d-pt th{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;padding:0 7px 5px;text-align:right;font-weight:500;}
+.d-pt th:first-child{text-align:left;}
+.d-pt td{font-size:11px;padding:5px 7px;border-top:1px solid #e0ddd5;text-align:right;color:#666;}
+.d-pt td:first-child{text-align:left;color:#111;font-weight:600;}
+.d-pt .cur td{background:#fafaf8;}
+.d-pt .cur td:first-child{color:#185FA5;}
+.d-dr{color:#A32D2D;font-weight:700;} .d-dg{color:#27500A;font-weight:700;} .d-da{color:#854F0B;font-weight:700;} .d-dp{color:#534AB7;font-weight:700;}
+.d-so{display:flex;gap:8px;margin-top:8px;}
+.d-so-o{flex:1;border:1px solid #e0ddd5;border-radius:7px;padding:8px;cursor:pointer;text-align:center;}
+.d-so-o.sel{border-color:#185FA5;background:#E6F1FB;}
+.d-so-i{font-size:20px;color:#888;margin-bottom:3px;}
+.d-so-o.sel .d-so-i{color:#185FA5;}
+.d-so-l{font-size:11px;font-weight:600;color:#111;}
+.d-so-s{font-size:9px;color:#888;margin-top:1px;}
+.d-al{border-radius:7px;padding:9px 11px;margin:8px 0;display:flex;align-items:flex-start;gap:7px;}
+.d-aw{background:#FAEEDA;border:1px solid #EF9F27;}
+.d-aw i{color:#854F0B;font-size:13px;flex-shrink:0;margin-top:1px;}
+.d-aw p{font-size:10px;color:#633806;line-height:1.5;}
+.d-ab{background:#E6F1FB;border:1px solid #378ADD;}
+.d-ab i{color:#185FA5;font-size:13px;flex-shrink:0;margin-top:1px;}
+.d-ab p{font-size:10px;color:#0C447C;line-height:1.5;}
+.d-lw{background:#fafaf8;border-radius:7px;padding:9px 12px;display:flex;align-items:center;gap:10px;margin:5px 0;}
+.d-ln{font-family:'Courier New',monospace;font-size:11px;font-weight:600;color:#111;flex:1;letter-spacing:.04em;}
+.d-ls{font-size:10px;color:#A32D2D;margin-top:2px;display:flex;align-items:center;gap:3px;}
+.d-lc{font-size:10px;color:#185FA5;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;}
+.d-ff{background:#fff;border-top:1px solid #e0ddd5;padding:12px 20px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.d-bi{background:#185FA5;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.d-biv{background:#534AB7;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.d-bb{background:#1D9E75;color:#fff;border:none;border-radius:7px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.d-bs{background:#fafaf8;color:#666;border:1px solid #e0ddd5;border-radius:7px;padding:7px 12px;font-size:11px;cursor:pointer;}
+.d-sg{font-size:10px;color:#aaa;margin-left:auto;display:flex;align-items:center;gap:3px;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div>
+    <div class="topbar">
+      <div class="tl">
+        <div class="logo"><i class="ti ti-receipt-tax"></i></div>
+        <span class="app-name">FiscalIA</span>
+        <span class="regime-pill">PFAE · Actividad Empresarial</span>
+      </div>
+      <div class="tr">
+        <div class="period-btn"><i class="ti ti-calendar" style="font-size:12px;"></i> Junio 2026 · Normal</div>
+        <div class="notif"><i class="ti ti-bell" style="font-size:14px;"></i><div class="notif-dot"></div></div>
+        <div class="avatar">MR</div>
+      </div>
+    </div>
+    <div class="deadline" id="deadline-banner">
+      <i class="ti ti-alarm"></i>
+      <span class="deadline-text"><strong>9 días</strong> para presentar tu declaración de junio — vence el <strong>17 de julio</strong>. Tu declaración está lista para revisar.</span>
+      <button class="deadline-cta" onclick="goToDeclaration()">Revisar ahora</button>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-sec">General</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard', this)">
+        <i class="ti ti-layout-dashboard"></i> Dashboard
+      </div>
+      <div class="nav-item" id="nav-perfil" onclick="navigate('perfil', this)">
+        <i class="ti ti-user-check"></i> Perfil fiscal
+      </div>
+
+      <div class="nav-sec">Ingresos</div>
+      <div class="nav-item" onclick="navigate('ingresos', this)">
+        <i class="ti ti-file-invoice"></i> CFDIs emitidos <span class="nav-badge nb-blue">12</span>
+      </div>
+      <div class="nav-item" onclick="navigate('ajustes-ing', this)">
+        <i class="ti ti-adjustments"></i> Ajustes ingreso <span class="nav-badge nb-warn">5</span>
+      </div>
+      <div class="nav-item" onclick="navigate('cancelaciones', this)">
+        <i class="ti ti-file-x"></i> Cancelaciones <span class="nav-badge nb-warn">3</span>
+      </div>
+
+      <div class="nav-sec">Egresos</div>
+      <div class="nav-item" onclick="navigate('egresos', this)">
+        <i class="ti ti-receipt"></i> CFDIs recibidos <span class="nav-badge nb-warn">1!</span>
+      </div>
+      <div class="nav-item" onclick="navigate('ajustes-egr', this)">
+        <i class="ti ti-adjustments"></i> Ajustes egreso
+      </div>
+      <div class="nav-item" onclick="navigate('nomina', this)">
+        <i class="ti ti-users"></i> Nómina <span class="nav-badge nb-blue">3</span>
+      </div>
+
+      <div class="nav-sec">Declaraciones</div>
+      <div class="nav-item" id="nav-isr" onclick="goToDeclaration()">
+        <i class="ti ti-calculator"></i> ISR provisional
+      </div>
+      <div class="nav-item" id="nav-iva" onclick="goToDeclaration()">
+        <i class="ti ti-percentage"></i> IVA definitivo
+      </div>
+
+      <div class="nav-sec">Historial</div>
+      <div class="nav-item" onclick="navigate('historial', this)">
+        <i class="ti ti-history"></i> Declaraciones
+      </div>
+    </div>
+
+    <!-- MAIN AREA -->
+    <div class="main" id="main-area">
+
+      <!-- ══════════════ DASHBOARD SCREEN ══════════════ -->
+      <div class="screen active" id="screen-dashboard">
+
+        <div class="metrics">
+          <div class="met hi-blue">
+            <div class="ml"><i class="ti ti-trending-up" style="font-size:12px;"></i> Ingresos MTD</div>
+            <div class="mv">$124,800</div>
+            <div class="ms up-c"><i class="ti ti-arrow-up" style="font-size:10px;"></i> +18% vs mayo</div>
+          </div>
+          <div class="met">
+            <div class="ml"><i class="ti ti-receipt" style="font-size:12px;"></i> Deducciones MTD</div>
+            <div class="mv">$88,725</div>
+            <div class="ms up-c"><i class="ti ti-arrow-up" style="font-size:10px;"></i> +188% — nómina nueva</div>
+          </div>
+          <div class="met">
+            <div class="ml"><i class="ti ti-scale" style="font-size:12px;"></i> Utilidad gravable</div>
+            <div class="mv">$170,430</div>
+            <div class="ms mu">Acumulado ene–jun</div>
+          </div>
+          <div class="met hi-warn">
+            <div class="ml" style="color:#854F0B;"><i class="ti ti-file-x" style="font-size:12px;"></i> Pend. cancelación</div>
+            <div class="mv" style="color:#854F0B;">−$28,500</div>
+            <div class="ms" style="color:#854F0B;">3 facturas sin confirmar</div>
+          </div>
+        </div>
+
+        <div class="cancel-alert">
+          <i class="ti ti-alert-triangle"></i>
+          <div class="cancel-alert-body">
+            <div class="cancel-alert-title">3 facturas pendientes de cancelación — $28,500</div>
+            <div class="cancel-alert-sub">Confirmarlas antes del día 17 reduce tu ISR de $15,240 → $11,130 (ahorro $4,110). Folio A-079 vence hoy.</div>
+            <button class="cancel-cta" onclick="navigate('cancelaciones', null)">Revisar cancelaciones</button>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="ch">
+              <span><i class="ti ti-chart-bar" style="font-size:13px;vertical-align:-2px;margin-right:4px;"></i> Tendencia 4 meses</span>
+              <span class="ch-act">Ver detalle</span>
+            </div>
+            <div class="bar-chart">
+              <div class="bar-grp"><div class="bar-pair"><div class="bar-seg" style="height:34px;background:#9FE1CB;"></div><div class="bar-seg" style="height:14px;background:#F0997B;"></div></div><div class="bar-mo">Mar</div></div>
+              <div class="bar-grp"><div class="bar-pair"><div class="bar-seg" style="height:44px;background:#9FE1CB;"></div><div class="bar-seg" style="height:16px;background:#F0997B;"></div></div><div class="bar-mo">Abr</div></div>
+              <div class="bar-grp"><div class="bar-pair"><div class="bar-seg" style="height:58px;background:#9FE1CB;"></div><div class="bar-seg" style="height:18px;background:#F0997B;"></div></div><div class="bar-mo">May</div></div>
+              <div class="bar-grp"><div class="bar-pair"><div class="bar-seg" style="height:52px;background:#1D9E75;"></div><div class="bar-seg" style="height:42px;background:#D85A30;"></div></div><div class="bar-mo" style="color:#0F6E56;font-weight:600;">Jun</div></div>
+            </div>
+            <div class="chart-leg">
+              <span class="leg-i"><span class="leg-sq" style="background:#1D9E75;"></span> Ingresos</span>
+              <span class="leg-i"><span class="leg-sq" style="background:#D85A30;"></span> Deducciones</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="ch">
+              <span><i class="ti ti-receipt" style="font-size:13px;vertical-align:-2px;margin-right:4px;"></i> Deducciones por categoría</span>
+              <span class="ch-act">Agregar</span>
+            </div>
+            <div class="exp-row"><span class="exp-cat">Nómina (3 empleados)</span><div class="exp-bar"><div class="exp-fill" style="width:100%;background:#534AB7;"></div></div><span class="exp-amt">$52,000 <span class="exp-ok">OK</span></span></div>
+            <div class="exp-row"><span class="exp-cat">Servicios profesionales</span><div class="exp-bar"><div class="exp-fill" style="width:31%;"></div></div><span class="exp-amt">$16,200 <span class="exp-ok">OK</span></span></div>
+            <div class="exp-row"><span class="exp-cat">Renta de oficina</span><div class="exp-bar"><div class="exp-fill" style="width:21%;"></div></div><span class="exp-amt">$10,800 <span class="exp-ok">OK</span></span></div>
+            <div class="exp-row"><span class="exp-cat">Gasolina</span><div class="exp-bar"><div class="exp-fill" style="width:7%;background:#EF9F27;"></div></div><span class="exp-amt">$3,600 <span class="exp-warn">Revisar</span></span></div>
+            <div class="exp-row"><span class="exp-cat">Software / licencias</span><div class="exp-bar"><div class="exp-fill" style="width:10%;"></div></div><span class="exp-amt">$5,400 <span class="exp-ok">OK</span></span></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px;">
+          <div class="ch">
+            <span><i class="ti ti-file-stack" style="font-size:13px;vertical-align:-2px;margin-right:4px;"></i> CFDIs del mes</span>
+            <span class="ch-act">Ver todos</span>
+          </div>
+          <div class="cfdi-hdr ci"><span class="cfdi-hdr-title"><i class="ti ti-arrow-up-circle" style="font-size:12px;vertical-align:-2px;margin-right:3px;"></i> Ingresos</span><span class="cfdi-hdr-count">12 CFDIs</span><span class="cfdi-hdr-amt" style="color:#27500A;">$124,800</span></div>
+          <div class="cfdi-row-item"><div class="cfdi-ico cii"><i class="ti ti-building"></i></div><div style="flex:1;"><div class="cfdi-name">Grupo Bimsa S.A. de C.V.</div><div class="cfdi-date">Jun 5 · A-089</div></div><span class="cfdi-val">$42,000</span><span class="cfdi-tag tok">Timbrado</span></div>
+          <div class="cfdi-row-item"><div class="cfdi-ico cii"><i class="ti ti-building"></i></div><div style="flex:1;"><div class="cfdi-name">Constructora Azteca</div><div class="cfdi-date">Jun 3 · A-088</div></div><span class="cfdi-val">$38,500</span><span class="cfdi-tag tok">Timbrado</span></div>
+          <div style="height:8px;"></div>
+          <div class="cfdi-hdr ce"><span class="cfdi-hdr-title"><i class="ti ti-arrow-down-circle" style="font-size:12px;vertical-align:-2px;margin-right:3px;"></i> Egresos</span><span class="cfdi-hdr-count">8 CFDIs</span><span class="cfdi-hdr-amt" style="color:#712B13;">$34,850</span></div>
+          <div class="cfdi-row-item"><div class="cfdi-ico cie"><i class="ti ti-home"></i></div><div style="flex:1;"><div class="cfdi-name">Renta oficina · Inmobiliaria del Norte</div><div class="cfdi-date">Jun 1 · G03</div></div><span class="cfdi-val">$10,800</span><span class="cfdi-tag tok">OK</span></div>
+          <div class="cfdi-row-item" style="background:#FAEEDA;border-radius:5px;"><div class="cfdi-ico" style="background:#FAEEDA;width:23px;height:23px;border-radius:5px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-gas-station" style="font-size:12px;color:#854F0B;"></i></div><div style="flex:1;"><div class="cfdi-name">Gasolinera Pemex</div><div class="cfdi-date" style="color:#854F0B;">Jun 8 · G01 — uso incorrecto, debe ser G03</div></div><span class="cfdi-val">$3,600</span><span class="cfdi-tag twrn">Revisar</span></div>
+        </div>
+
+        <!-- FILING SUMMARY -->
+        <div class="filing-grid">
+          <div class="filing-block fb-isr">
+            <div class="fb-hdr">
+              <span class="fb-title"><i class="ti ti-calculator" style="font-size:13px;vertical-align:-2px;margin-right:4px;"></i> ISR provisional</span>
+              <span style="font-size:9px;background:#B5D4F4;color:#0C447C;padding:2px 6px;border-radius:4px;">Acumulativo ene–jun</span>
+            </div>
+            <div class="fb-body">
+              <div class="fb-amount">$15,240</div>
+              <div class="fb-sub">ISR propio $10,040 + retención empleados $5,200</div>
+              <div class="fb-deadline"><i class="ti ti-clock" style="font-size:11px;"></i> Vence 17 jul 2026 · 9 días</div>
+              <button class="fb-btn-isr" onclick="goToDeclaration()"><i class="ti ti-send" style="font-size:13px;"></i> Declarar ISR</button>
+            </div>
+          </div>
+          <div class="filing-block fb-iva">
+            <div class="fb-hdr">
+              <span class="fb-title"><i class="ti ti-percentage" style="font-size:13px;vertical-align:-2px;margin-right:4px;"></i> IVA definitivo</span>
+              <span style="font-size:9px;background:#AFA9EC;color:#3C3489;padding:2px 6px;border-radius:4px;">Solo junio</span>
+            </div>
+            <div class="fb-body">
+              <div class="fb-amount">$3,320</div>
+              <div class="fb-sub">IVA cobrado $15,552 − acreditable $5,576 − retenido $6,656</div>
+              <div class="fb-deadline"><i class="ti ti-clock" style="font-size:11px;"></i> Vence 17 jul 2026 · 9 días</div>
+              <button class="fb-btn-iva" onclick="goToDeclaration()"><i class="ti ti-send" style="font-size:13px;"></i> Declarar IVA</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end dashboard screen -->
+
+      <!-- ══════════════ DECLARATION SCREEN ══════════════ -->
+      <div class="screen decl-screen" id="screen-declaracion">
+        <div class="decl-wrap">
+
+          <div class="decl-back" onclick="goToDashboard()">
+            <i class="ti ti-arrow-left"></i> Volver al dashboard
+          </div>
+
+          <div class="d-hdr">
+            <div><div class="d-title">Declaración provisional / definitiva — Junio 2026 · Normal</div><div class="d-meta">RFC: MARG8801153K2 · María G. Rodríguez · PFAE — comparado vs. mar, abr, may 2026</div></div>
+            <div class="d-badges"><span class="d-badge dbw"><i class="ti ti-clock" style="font-size:11px;vertical-align:-1px;"></i> 9 días · vence 17 jul</span><span class="d-badge dbb">ISR acumulativo ene–jun</span><span class="d-badge dbg">IVA definitivo junio</span></div>
+          </div>
+
+          <div class="d-legend">
+            <span style="font-size:10px;font-weight:600;color:#666;">Cambio vs últimas 3 declaraciones:</span>
+            <span class="d-li"><span class="d-ls dlr"></span> Sube &gt;25%</span>
+            <span class="d-li"><span class="d-ls dla"></span> Sube 10–25%</span>
+            <span class="d-li"><span class="d-ls dlg"></span> Baja &gt;10%</span>
+            <span class="d-li"><span class="d-ls dlp"></span> Nuevo este mes</span>
+          </div>
+
+          <!-- HISTORIAL -->
+          <div class="d-sec">
+            <div class="d-sh"><i class="ti ti-chart-bar" style="font-size:13px;color:#888;"></i> Historial últimas 3 declaraciones</div>
+            <table class="d-pt">
+              <thead><tr><th>Campo</th><th>Mar</th><th>Abr</th><th>May</th><th>Prom.</th><th>Jun 2026</th><th>Delta</th></tr></thead>
+              <tbody>
+                <tr><td>Ingresos del período</td><td>$92,000</td><td>$108,500</td><td>$144,200</td><td>$114,900</td><td style="color:#185FA5;font-weight:700;">$102,000</td><td class="d-dg">−11.2%</td></tr>
+                <tr><td>Ingresos a adicionar (sin CFDI)</td><td>$0</td><td>$0</td><td>$0</td><td>$0</td><td style="color:#534AB7;font-weight:700;">$3,200</td><td class="d-dp">Nuevo</td></tr>
+                <tr><td>Cancelaciones / a disminuir</td><td>$0</td><td>$2,800</td><td>$0</td><td>$933</td><td style="color:#A32D2D;font-weight:700;">$26,000</td><td class="d-dr">+2,686%</td></tr>
+                <tr><td>Gastos del período</td><td>$28,400</td><td>$31,200</td><td>$32,600</td><td>$30,733</td><td style="color:#185FA5;font-weight:700;">$34,850</td><td class="d-da">+13.4%</td></tr>
+                <tr><td>Nómina deducible</td><td>$0</td><td>$0</td><td>$0</td><td>$0</td><td style="color:#534AB7;font-weight:700;">$52,000</td><td class="d-dp">Nuevo</td></tr>
+                <tr><td>ISR retenido personas morales</td><td>$1,800</td><td>$2,100</td><td>$2,600</td><td>$2,167</td><td style="color:#185FA5;font-weight:700;">$7,030</td><td class="d-dr">+224.5%</td></tr>
+                <tr class="cur"><td>ISR total a enterar</td><td>$8,200</td><td>$9,400</td><td>$10,800</td><td>$9,467</td><td style="color:#0C447C;font-weight:700;">$15,240</td><td class="d-dr">+60.9%</td></tr>
+                <tr class="cur"><td>IVA a enterar</td><td>$4,100</td><td>$4,800</td><td>$5,200</td><td>$4,700</td><td style="color:#3C3489;font-weight:700;">$3,320</td><td class="d-dg">−29.4%</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="d-tabs">
+            <div class="d-tab on"><div class="d-tdot" style="background:#185FA5;"></div> ISR · Ingresos</div>
+            <div class="d-tab"><div class="d-tdot" style="background:#B5D4F4;"></div> ISR · Deducciones</div>
+            <div class="d-tab"><div class="d-tdot" style="background:#B5D4F4;"></div> ISR · Determinación</div>
+            <div class="d-tab"><div class="d-tdot" style="background:#AFA9EC;"></div> IVA · Determinación</div>
+            <div class="d-tab"><div class="d-tdot" style="background:#97C459;"></div> Pago final</div>
+          </div>
+
+          <!-- ISR INGRESOS -->
+          <div class="d-sec">
+            <div class="d-sh"><i class="ti ti-trending-up" style="font-size:13px;color:#185FA5;"></i> Ingresos — ISR acumulativo ene–jun 2026 <span class="d-sb dsi">Precargado SAT</span></div>
+            <div class="d-fg d-g2">
+              <div class="d-f"><div class="d-fl">Ingresos del período (junio) <span class="d-ta">auto SAT</span> <span class="d-cf dcg">↓ −11.2%</span></div><div class="d-fv d-fa d-ud">$102,000.00</div></div>
+              <div class="d-f"><div class="d-fl">Ingresos acumulados meses anteriores <span class="d-ta">auto SAT</span></div><div class="d-fv d-fa">$487,300.00</div></div>
+            </div>
+            <div class="d-sr">
+              <div class="d-sl"><i class="ti ti-minus-circle"></i> Ingresos a disminuir</div>
+              <div class="d-fg d-g3">
+                <div class="d-f"><div class="d-fl">Descuentos y notas de crédito <i class="ti ti-pencil d-pen"></i> <span class="d-cf dca">↑ +61%</span></div><div class="d-fv d-fe d-ua">$1,500.00</div></div>
+                <div class="d-f"><div class="d-fl">Cancelaciones confirmadas <i class="ti ti-pencil d-pen"></i> <span class="d-cf dcr">↑↑ +2,686%</span></div><div class="d-fv d-fe d-ur">$24,500.00</div></div>
+                <div class="d-f"><div class="d-fl">Ingresos exentos / copropiedad <i class="ti ti-pencil d-pen"></i></div><div class="d-fv d-fe d-z">$0.00</div></div>
+              </div>
+            </div>
+            <div class="d-sr">
+              <div class="d-sl"><i class="ti ti-plus-circle"></i> Ingresos a adicionar (sin CFDI)</div>
+              <div class="d-fg d-g3">
+                <div class="d-f"><div class="d-fl">Bono / regalo en especie <i class="ti ti-pencil d-pen"></i> <span class="d-cf dcn">Nuevo</span></div><div class="d-fv d-fe d-un">$2,000.00</div></div>
+                <div class="d-f"><div class="d-fl">Anticipo sin CFDI <i class="ti ti-pencil d-pen"></i> <span class="d-cf dcn">Nuevo</span></div><div class="d-fv d-fe d-un">$1,200.00</div></div>
+                <div class="d-f"><div class="d-fl">Otros adicionales <i class="ti ti-pencil d-pen"></i></div><div class="d-fv d-fe d-z">$0.00</div></div>
+              </div>
+            </div>
+            <div class="d-divl"></div>
+            <div class="d-fg d-g2">
+              <div class="d-f"><div class="d-fl">Total ingresos netos del período <span class="d-tc">calculado</span> <span class="d-cf dcg">↓ −11%</span></div><div class="d-fv d-fc d-ud">$102,000.00</div></div>
+              <div class="d-f"><div class="d-fl">Total ingresos acumulados ene–jun <span class="d-tc">calculado</span></div><div class="d-fv d-fa" style="font-size:14px;">$589,300.00</div></div>
+            </div>
+          </div>
+
+          <!-- ISR DEDUCCIONES -->
+          <div class="d-sec">
+            <div class="d-sh"><i class="ti ti-receipt" style="font-size:13px;color:#185FA5;"></i> Deducciones autorizadas <span class="d-sb dsi">Precargado + editable</span></div>
+            <div class="d-fg d-g2">
+              <div class="d-f"><div class="d-fl">Compras y gastos del período <span class="d-ta">auto SAT</span> <span class="d-cf dca">↑ +13.4%</span></div><div class="d-fv d-fa d-ua">$34,850.00</div></div>
+              <div class="d-f"><div class="d-fl">Compras y gastos acumulados ene–may <span class="d-ta">auto SAT</span></div><div class="d-fv d-fa">$163,420.00</div></div>
+            </div>
+            <div class="d-sr">
+              <div class="d-sl"><i class="ti ti-adjustments"></i> Gastos a disminuir / adicionar</div>
+              <div class="d-fg d-g3">
+                <div class="d-f"><div class="d-fl">Gastos sin CFDI (excluidos) <i class="ti ti-pencil d-pen"></i></div><div class="d-fv d-fe d-z">$0.00</div></div>
+                <div class="d-f"><div class="d-fl">Nómina deducible timbrada <span class="d-ta">auto · nómina</span> <span class="d-cf dcn">Nuevo</span></div><div class="d-fv d-fa d-un">$52,000.00</div></div>
+                <div class="d-f"><div class="d-fl">Gastos a adicionar <i class="ti ti-pencil d-pen"></i></div><div class="d-fv d-fe d-z">$0.00</div></div>
+              </div>
+            </div>
+            <div class="d-sr">
+              <div class="d-sl"><i class="ti ti-building-factory"></i> Deducción de inversiones (depreciación)</div>
+              <div class="d-fg d-g4">
+                <div class="d-f"><div class="d-fl">Equipo cómputo 25%/año <i class="ti ti-pencil d-pen"></i> <span class="d-cf dcn">Nuevo</span></div><div class="d-fv d-fe d-un">$1,458.00</div></div>
+                <div class="d-f"><div class="d-fl">Mobiliario 10%/año <i class="ti ti-pencil d-pen"></i> <span class="d-cf dcn">Nuevo</span></div><div class="d-fv d-fe d-un">$417.00</div></div>
+                <div class="d-f"><div class="d-fl">Otros activos <i class="ti ti-pencil d-pen"></i></div><div class="d-fv d-fe d-z">$0.00</div></div>
+                <div class="d-f"><div class="d-fl">Total depreciación <span class="d-tc">calculado</span></div><div class="d-fv d-fc">$1,875.00</div></div>
+              </div>
+            </div>
+            <div class="d-sr">
+              <div class="d-sl"><i class="ti ti-star"></i> Facilidades administrativas</div>
+              <div class="d-fg d-g2">
+                <div class="d-f"><div class="d-fl">Estímulo aplicable <i class="ti ti-pencil d-pen"></i></div><div class="d-fv d-fe d-z">$0.00</div></div>
+                <div class="d-f"><div class="d-fl">Descripción <i class="ti ti-pencil d-pen"></i></div><div class="d-fv d-fe d-z" style="font-size:11px;color:#bbb;">No aplica</div></div>
+              </div>
+            </div>
+            <div class="d-divl"></div>
+            <div class="d-fg d-g2">
+              <div class="d-f"><div class="d-fl">Total deducciones período junio <span class="d-tc">calculado</span> <span class="d-cf dcr">↑↑ +188%</span></div><div class="d-fv d-fc d-ur">$88,725.00</div></div>
+              <div class="d-f"><div class="d-fl">Total deducciones acumuladas ene–jun <span class="d-tc">calculado</span></div><div class="d-fv d-fa" style="color:#0C447C;font-size:14px;">$418,870.00</div></div>
+            </div>
+          </div>
+
+          <!-- ISR DETERMINACIÓN -->
+          <div class="d-sec">
+            <div class="d-sh"><i class="ti ti-calculator" style="font-size:13px;color:#185FA5;"></i> Determinación ISR <span class="d-sb dsi">Acumulativo ene–jun</span></div>
+            <div class="d-fg d-g2">
+              <div class="d-f"><div class="d-fl">Utilidad fiscal acumulada <span class="d-tc">calculado</span> <span class="d-cf dcg">↓ Menor por nómina</span></div><div class="d-fv d-fc d-ud">$170,430.00</div></div>
+              <div class="d-f"><div class="d-fl">Pérdidas fiscales anteriores <i class="ti ti-pencil d-pen"></i></div><div class="d-fv d-fe d-z">$0.00</div></div>
+            </div>
+            <div class="d-fg d-g2">
+              <div class="d-f"><div class="d-fl">Base gravable <span class="d-tc">calculado</span></div><div class="d-fv d-fa" style="color:#0C447C;font-size:13px;">$170,430.00</div></div>
+              <div class="d-f"><div class="d-fl">ISR causado (tabla art. 96 LISR) <span class="d-tc">calculado</span></div><div class="d-fv d-fa" style="color:#0C447C;">$29,418.00</div></div>
+            </div>
+            <div class="d-divl"></div>
+            <div class="d-fg d-g3">
+              <div class="d-f"><div class="d-fl">Pagos provisionales anteriores <span class="d-ta">auto SAT</span></div><div class="d-fv d-fa">$12,348.00</div></div>
+              <div class="d-f"><div class="d-fl">ISR retenido personas morales 10% <span class="d-ta">auto CFDIs</span> <span class="d-cf dcr">↑↑ +224%</span></div><div class="d-fv d-fa d-ur">$7,030.00</div></div>
+              <div class="d-f"><div class="d-fl">ISR retenido empleados <span class="d-ta">auto · nómina</span> <span class="d-cf dcn">Nuevo</span></div><div class="d-fv d-fa d-un">$5,200.00</div></div>
+            </div>
+            <div class="d-divl"></div>
+            <div class="d-fg d-g2">
+              <div class="d-f"><div class="d-fl">ISR propio a cargo <span class="d-tc">calculado</span> <span class="d-cf dca">↑ +21%</span></div><div class="d-fv d-ua" style="border:2px solid #EF9F27;color:#633806;font-size:12px;font-weight:600;padding:6px 9px;border-radius:6px;">$10,040.00 a cargo</div></div>
+              <div class="d-f"><div class="d-fl">ISR total a enterar (propio + nómina) <span class="d-tc">calculado</span> <span class="d-cf dcr">↑↑ +60.9%</span></div><div class="d-fv d-ti d-ur" style="border-width:2px;border-color:#E24B4A;">$15,240.00</div></div>
+            </div>
+            <div style="margin-top:8px;">
+              <div style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;">Si resultado es saldo a favor</div>
+              <div class="d-so">
+                <div class="d-so-o sel"><div class="d-so-i"><i class="ti ti-coins"></i></div><div class="d-so-l">Compensación</div><div class="d-so-s">Aplica contra próximo ISR</div></div>
+                <div class="d-so-o"><div class="d-so-i"><i class="ti ti-arrow-back"></i></div><div class="d-so-l">Devolución</div><div class="d-so-s">SAT regresa el monto</div></div>
+              </div>
+            </div>
+            <div class="d-divl"></div>
+            <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Línea de captura ISR</div>
+            <div class="d-lw"><div><div class="d-ln">2600 0000 0001 1111 2222 3333 4444</div><div class="d-ls"><i class="ti ti-clock" style="font-size:10px;"></i> Vence 17 jul 2026 · $15,240.00</div></div><div class="d-lc"><i class="ti ti-copy" style="font-size:11px;"></i> Copiar</div></div>
+          </div>
+
+          <!-- IVA DETERMINACIÓN -->
+          <div class="d-sec">
+            <div class="d-sh"><i class="ti ti-percentage" style="font-size:13px;color:#534AB7;"></i> Determinación IVA — definitivo junio 2026 <span class="d-sb dsv">Solo cobrado/pagado en junio</span></div>
+            <div class="d-fg d-g3">
+              <div class="d-f"><div class="d-fl">Actividades gravadas 16% <span class="d-tv3">auto SAT</span> <span class="d-cf dcg">↓ −11%</span></div><div class="d-fv d-fv2 d-ud">$97,200.00</div></div>
+              <div class="d-f"><div class="d-fl">Actividades gravadas 0% <span class="d-tv3">auto SAT</span></div><div class="d-fv d-fv2 d-z">$0.00</div></div>
+              <div class="d-f"><div class="d-fl">Actividades exentas <span class="d-tv3">auto SAT</span></div><div class="d-fv d-fv2 d-z">$0.00</div></div>
+            </div>
+            <div class="d-fg d-g3" style="margin-top:7px;">
+              <div class="d-f"><div class="d-fl">IVA cobrado / trasladado 16% <span class="d-tv3">auto SAT</span> <span class="d-cf dcg">↓ −11%</span></div><div class="d-fv d-fv2 d-ud">$15,552.00</div></div>
+              <div class="d-f"><div class="d-fl">IVA acreditable del período <span class="d-tv3">auto SAT</span> <span class="d-cf dca">↑ +13%</span></div><div class="d-fv d-fv2 d-ua">$5,576.00</div></div>
+              <div class="d-f"><div class="d-fl">IVA retenido personas morales ⅔ <span class="d-tv3">auto SAT</span> <span class="d-cf dcr">↑↑ +224%</span></div><div class="d-fv d-fv2 d-ur">$6,656.00</div></div>
+            </div>
+            <div class="d-divl"></div>
+            <div class="d-fg d-g2">
+              <div class="d-f"><div class="d-fl">IVA a cargo / a favor <span class="d-tc">calculado</span> <span class="d-cf dcg">↓ −29%</span></div><div class="d-fv d-fc d-ud">$3,320.00 a cargo</div></div>
+              <div class="d-f"><div class="d-fl">IVA total a enterar junio <span class="d-tc">calculado</span></div><div class="d-fv d-tv">$3,320.00</div></div>
+            </div>
+            <div class="d-divl"></div>
+            <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Línea de captura IVA</div>
+            <div class="d-lw"><div><div class="d-ln">2600 0000 0002 5555 6666 7777 8888</div><div class="d-ls"><i class="ti ti-clock" style="font-size:10px;"></i> Vence 17 jul 2026 · $3,320.00</div></div><div class="d-lc"><i class="ti ti-copy" style="font-size:11px;"></i> Copiar</div></div>
+          </div>
+
+          <!-- PAGO FINAL -->
+          <div class="d-sec">
+            <div class="d-sh"><i class="ti ti-credit-card" style="font-size:13px;color:#1D9E75;"></i> Pago final — ambas obligaciones <span class="d-sb dsp">ISR + IVA · misma fecha</span></div>
+            <div class="d-fg d-g4">
+              <div class="d-f"><div class="d-fl">Acreditamiento estímulos <i class="ti ti-pencil d-pen"></i></div><div class="d-fv d-fe d-z">$0.00</div></div>
+              <div class="d-f"><div class="d-fl">Recargos / actualizaciones <span class="d-ta">auto si fuera plazo</span></div><div class="d-fv d-fa d-z">$0.00</div></div>
+              <div class="d-f"><div class="d-fl">ISR cantidad a pagar <span class="d-cf dcr">↑↑ +61%</span></div><div class="d-fv d-ti d-ur" style="border-width:2px;border-color:#E24B4A;">$15,240.00</div></div>
+              <div class="d-f"><div class="d-fl">IVA cantidad a pagar <span class="d-cf dcg">↓ −29%</span></div><div class="d-fv d-tv d-ud" style="border-color:#1D9E75;border-width:2px;">$3,320.00</div></div>
+            </div>
+            <div class="d-al d-aw">
+              <i class="ti ti-alert-triangle"></i>
+              <p><strong>ISR sube $5,773 (+61%) vs. promedio.</strong> $5,200 = primera retención de empleados (nuevo) · $573 = incremento natural del ISR propio. Salto estructural por inicio de nómina.</p>
+            </div>
+            <div class="d-divl"></div>
+            <div style="font-size:11px;font-weight:600;color:#111;margin-bottom:5px;">Líneas de captura para banco</div>
+            <div class="d-lw"><div style="flex:1;"><div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">ISR · Concepto 01</div><div class="d-ln">2600 0000 0001 1111 2222 3333 4444</div><div class="d-ls"><i class="ti ti-clock" style="font-size:10px;"></i> Vence 17 jul · $15,240.00</div></div><div class="d-lc"><i class="ti ti-copy" style="font-size:11px;"></i> Copiar</div></div>
+            <div class="d-lw"><div style="flex:1;"><div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">IVA · Concepto 02</div><div class="d-ln">2600 0000 0002 5555 6666 7777 8888</div><div class="d-ls"><i class="ti ti-clock" style="font-size:10px;"></i> Vence 17 jul · $3,320.00</div></div><div class="d-lc"><i class="ti ti-copy" style="font-size:11px;"></i> Copiar</div></div>
+            <div class="d-al d-ab" style="margin-top:7px;">
+              <i class="ti ti-shield-check"></i>
+              <p>FiscalIA presentará ambas declaraciones con tu <strong>e.firma</strong> en la misma sesión y enviará los dos acuses a tu buzón tributario y email.</p>
+            </div>
+          </div>
+
+          <div class="d-ff">
+            <button class="d-bi"><i class="ti ti-calculator" style="font-size:13px;"></i> Presentar ISR</button>
+            <button class="d-biv"><i class="ti ti-percentage" style="font-size:13px;"></i> Presentar IVA</button>
+            <button class="d-bb" onclick="openEfirmaModal()"><i class="ti ti-lock-open" style="font-size:13px;"></i> Presentar ambas con e.firma</button>
+            <button class="d-bs"><i class="ti ti-download" style="font-size:13px;vertical-align:-2px;"></i> Guardar borrador</button>
+            <span class="d-sg"><i class="ti ti-shield" style="font-size:11px;"></i> e.firma · cifrado SAT</span>
+          </div>
+
+        </div><!-- end decl-wrap -->
+      </div><!-- end declaration screen -->
+
+    </div><!-- end main-area -->
+  </div><!-- end body -->
+</div><!-- end app -->
+
+<script>
+/* ─── MODAL injected by JS ─── */
+</script>
+
+<!-- ══════════════ E.FIRMA MODAL ══════════════ -->
+<div id="efirma-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;">
+  <div id="efirma-modal" style="background:#fff;border-radius:14px;width:480px;max-width:94vw;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.22);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+
+    <!-- Modal header -->
+    <div style="background:#1D4ED8;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:30px;height:30px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <i class="ti ti-shield-check" style="color:#fff;font-size:16px;"></i>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#fff;">Autorizar con e.firma</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.7);margin-top:1px;">Declaración junio 2026 — ISR + IVA</div>
+        </div>
+      </div>
+      <button onclick="closeModal()" style="background:rgba(255,255,255,.15);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+        <i class="ti ti-x" style="color:#fff;font-size:14px;"></i>
+      </button>
+    </div>
+
+    <!-- Summary strip -->
+    <div style="background:#EEF5FC;border-bottom:1px solid #B5D4F4;padding:10px 20px;display:flex;gap:20px;">
+      <div><div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;">ISR a enterar</div><div style="font-size:14px;font-weight:700;color:#0C447C;">$15,240.00</div></div>
+      <div style="width:1px;background:#B5D4F4;"></div>
+      <div><div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;">IVA a enterar</div><div style="font-size:14px;font-weight:700;color:#534AB7;">$3,320.00</div></div>
+      <div style="width:1px;background:#B5D4F4;"></div>
+      <div><div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;">Total a pagar</div><div style="font-size:14px;font-weight:700;color:#111;">$18,560.00</div></div>
+    </div>
+
+    <!-- Form — step 1: credentials -->
+    <div id="modal-step-1" style="padding:20px;">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:4px;">Acceso por contraseña</div>
+      <div style="font-size:11px;color:#888;margin-bottom:16px;">Ingresa tus credenciales del SAT para firmar y presentar ambas declaraciones.</div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+
+        <div>
+          <label style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px;font-weight:600;">RFC:</label>
+          <input id="inp-rfc" type="text" placeholder="RFC" value="MARG8801153K2"
+            style="width:100%;padding:9px 12px;border:1.5px solid #185FA5;border-radius:7px;font-size:13px;color:#111;outline:none;font-family:inherit;"/>
+        </div>
+
+        <div>
+          <label style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px;font-weight:600;">
+            Contraseña: <i class="ti ti-help-circle" style="font-size:12px;color:#aaa;vertical-align:-1px;"></i>
+          </label>
+          <div style="position:relative;">
+            <input id="inp-pwd" type="password" placeholder="Contraseña"
+              style="width:100%;padding:9px 36px 9px 12px;border:1.5px solid #e0ddd5;border-radius:7px;font-size:13px;color:#111;outline:none;font-family:inherit;"/>
+            <i class="ti ti-eye-off" id="pwd-eye" onclick="togglePwd()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;color:#aaa;cursor:pointer;"></i>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px;font-weight:600;">e.firma portable:</label>
+          <input type="text" placeholder="Clave dinámica"
+            style="width:100%;padding:9px 12px;border:1.5px solid #e0ddd5;border-radius:7px;font-size:13px;color:#aaa;outline:none;background:#fafaf8;font-family:inherit;" disabled/>
+          <div style="font-size:10px;color:#aaa;margin-top:3px;">Opcional — requerida para solicitar devoluciones</div>
+        </div>
+
+        <!-- Captcha -->
+        <div>
+          <label style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;font-weight:600;">Captcha:</label>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <!-- Rendered captcha image (SVG simulation) -->
+            <div id="captcha-display" style="background:#f0ede8;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:4px;user-select:none;min-width:160px;">
+            </div>
+            <button onclick="refreshCaptcha()" style="background:#fafaf8;border:1px solid #e0ddd5;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:11px;color:#666;display:flex;align-items:center;gap:4px;">
+              <i class="ti ti-refresh" style="font-size:14px;"></i> Nueva
+            </button>
+          </div>
+          <input id="inp-captcha" type="text" placeholder="Escriba la palabra del captcha" maxlength="8"
+            style="width:100%;padding:9px 12px;border:1.5px solid #e0ddd5;border-radius:7px;font-size:13px;color:#111;outline:none;font-family:inherit;"
+            oninput="validateCaptchaInput()"/>
+          <div id="captcha-err" style="font-size:10px;color:#E24B4A;margin-top:3px;display:none;"><i class="ti ti-alert-circle" style="font-size:11px;vertical-align:-1px;"></i> Captcha incorrecto — inténtalo de nuevo</div>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:8px;margin-top:18px;align-items:center;">
+        <button onclick="closeModal()" style="background:#fafaf8;color:#666;border:1px solid #e0ddd5;border-radius:7px;padding:9px 16px;font-size:12px;cursor:pointer;font-family:inherit;">Cancelar</button>
+        <button onclick="submitEfirma()" id="btn-submit"
+          style="flex:1;background:#185FA5;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;">
+          <i class="ti ti-lock-open" style="font-size:14px;"></i> Autorizar y presentar al SAT
+        </button>
+        <button style="background:#fff;color:#555;border:1px solid #e0ddd5;border-radius:7px;padding:9px 14px;font-size:12px;cursor:pointer;font-family:inherit;">e.firma</button>
+      </div>
+
+      <div style="text-align:center;margin-top:10px;font-size:10px;color:#aaa;display:flex;align-items:center;justify-content:center;gap:4px;">
+        <i class="ti ti-shield" style="font-size:12px;"></i> Conexión cifrada con el portal del SAT · e.firma almacenada de forma segura
+      </div>
+    </div>
+
+    <!-- Step 2: loading -->
+    <div id="modal-step-2" style="display:none;padding:36px 20px;text-align:center;">
+      <div style="width:52px;height:52px;border:4px solid #E6F1FB;border-top-color:#185FA5;border-radius:50%;margin:0 auto 16px;animation:spin 1s linear infinite;"></div>
+      <div style="font-size:14px;font-weight:700;color:#111;margin-bottom:6px;" id="loading-msg">Conectando con el SAT…</div>
+      <div style="font-size:11px;color:#888;" id="loading-sub">Autenticando con tus credenciales</div>
+    </div>
+
+    <!-- Step 3: success + payment option -->
+    <div id="modal-step-3" style="display:none;padding:24px 20px;">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="width:52px;height:52px;background:#EAF3DE;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;">
+          <i class="ti ti-check" style="font-size:26px;color:#27500A;"></i>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:#111;margin-bottom:4px;">¡Declaraciones presentadas!</div>
+        <div style="font-size:11px;color:#666;">Recibidas por el SAT con fecha y hora oficial.</div>
+      </div>
+
+      <!-- Acuse cards -->
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
+        <div style="background:#EAF3DE;border:1px solid #97C459;border-radius:8px;padding:9px 13px;display:flex;align-items:center;gap:10px;">
+          <i class="ti ti-calculator" style="font-size:17px;color:#27500A;flex-shrink:0;"></i>
+          <div style="flex:1;">
+            <div style="font-size:11px;font-weight:700;color:#27500A;">ISR provisional — Jun 2026</div>
+            <div style="font-size:10px;color:#3B6D11;margin-top:1px;">Op: <strong>2026061900001842</strong> · $15,240.00</div>
+          </div>
+          <i class="ti ti-check-circle" style="font-size:17px;color:#27500A;"></i>
+        </div>
+        <div style="background:#EEEDFE;border:1px solid #AFA9EC;border-radius:8px;padding:9px 13px;display:flex;align-items:center;gap:10px;">
+          <i class="ti ti-percentage" style="font-size:17px;color:#3C3489;flex-shrink:0;"></i>
+          <div style="flex:1;">
+            <div style="font-size:11px;font-weight:700;color:#3C3489;">IVA definitivo — Jun 2026</div>
+            <div style="font-size:10px;color:#534AB7;margin-top:1px;">Op: <strong>2026061900001843</strong> · $3,320.00</div>
+          </div>
+          <i class="ti ti-check-circle" style="font-size:17px;color:#3C3489;"></i>
+        </div>
+      </div>
+
+      <!-- Líneas de captura -->
+      <div style="background:#fafaf8;border:1px solid #e0ddd5;border-radius:8px;padding:10px 13px;margin-bottom:14px;">
+        <div style="font-size:9px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;">Líneas de captura para banco</div>
+        <div style="font-family:'Courier New',monospace;font-size:11px;color:#111;margin-bottom:2px;">ISR: 2600 0000 0001 1111 2222 3333 4444</div>
+        <div style="font-family:'Courier New',monospace;font-size:11px;color:#111;">IVA: 2600 0000 0002 5555 6666 7777 8888</div>
+        <div style="font-size:10px;color:#A32D2D;margin-top:4px;display:flex;align-items:center;gap:3px;"><i class="ti ti-clock" style="font-size:10px;"></i> Vencen 17 jul 2026</div>
+      </div>
+
+      <!-- PAYMENT MANAGEMENT OFFER -->
+      <div style="background:linear-gradient(135deg,#0F2D6B 0%,#1D4ED8 100%);border-radius:10px;padding:14px;margin-bottom:14px;position:relative;overflow:hidden;">
+        <div style="position:absolute;right:-20px;top:-20px;width:80px;height:80px;background:rgba(255,255,255,.06);border-radius:50%;"></div>
+        <div style="position:absolute;right:20px;bottom:-30px;width:60px;height:60px;background:rgba(255,255,255,.04);border-radius:50%;"></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ti ti-credit-card" style="font-size:18px;color:#fff;"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px;">¿Quieres que FiscalIA gestione el pago?</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:10px;">Realizamos la transferencia a nombre del SAT desde tu cuenta bancaria, usando las líneas de captura generadas. Sin errores, sin portales lentos.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+              <div style="background:rgba(255,255,255,.12);border-radius:6px;padding:6px 10px;text-align:center;flex:1;min-width:80px;">
+                <div style="font-size:9px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.04em;">ISR a pagar</div>
+                <div style="font-size:13px;font-weight:700;color:#fff;">$15,240</div>
+              </div>
+              <div style="background:rgba(255,255,255,.12);border-radius:6px;padding:6px 10px;text-align:center;flex:1;min-width:80px;">
+                <div style="font-size:9px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.04em;">IVA a pagar</div>
+                <div style="font-size:13px;font-weight:700;color:#fff;">$3,320</div>
+              </div>
+              <div style="background:rgba(255,255,255,.2);border-radius:6px;padding:6px 10px;text-align:center;flex:1;min-width:80px;border:1px solid rgba(255,255,255,.3);">
+                <div style="font-size:9px;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.04em;">Comisión 5%</div>
+                <div style="font-size:13px;font-weight:700;color:#FFD56B;">$928</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.08);border-radius:7px;padding:8px 10px;margin-bottom:10px;">
+              <span style="font-size:11px;color:rgba(255,255,255,.8);">Total a cargar a tu cuenta</span>
+              <span style="font-size:14px;font-weight:700;color:#fff;">$19,488</span>
+            </div>
+            <button onclick="showModalStep(4)" style="width:100%;background:#FFD56B;color:#0F2D6B;border:none;border-radius:7px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;">
+              <i class="ti ti-credit-card" style="font-size:14px;"></i> Gestionar pago — $19,488
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button onclick="downloadAcuse()" style="flex:1;background:#fafaf8;color:#185FA5;border:1px solid #185FA5;border-radius:7px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:inherit;">
+          <i class="ti ti-download" style="font-size:13px;"></i> Descargar acuses
+        </button>
+        <button onclick="closeModal()" style="flex:1;background:#fafaf8;color:#666;border:1px solid #e0ddd5;border-radius:7px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">
+          Pagar yo mismo
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 4: payment management -->
+    <div id="modal-step-4" style="display:none;padding:24px 20px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;" onclick="showModalStep(3)">
+        <i class="ti ti-arrow-left" style="font-size:16px;color:#185FA5;"></i>
+        <span style="font-size:11px;color:#185FA5;font-weight:600;">Volver</span>
+      </div>
+
+      <div style="font-size:14px;font-weight:700;color:#111;margin-bottom:4px;">Gestión de pago de impuestos</div>
+      <div style="font-size:11px;color:#666;margin-bottom:16px;">FiscalIA enviará la transferencia al SAT en tu nombre usando las líneas de captura oficiales.</div>
+
+      <!-- Summary -->
+      <div style="background:#fafaf8;border:1px solid #e0ddd5;border-radius:9px;overflow:hidden;margin-bottom:14px;">
+        <div style="padding:10px 14px;border-bottom:1px solid #e0ddd5;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f0ede8;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:8px;height:8px;background:#185FA5;border-radius:50%;display:inline-block;"></span>
+              <span style="font-size:12px;color:#111;">ISR provisional junio 2026</span>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:#111;">$15,240.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:8px;height:8px;background:#534AB7;border-radius:50%;display:inline-block;"></span>
+              <span style="font-size:12px;color:#111;">IVA definitivo junio 2026</span>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:#111;">$3,320.00</span>
+          </div>
+        </div>
+        <div style="padding:10px 14px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px;">
+            <span>Subtotal impuestos</span><span>$18,560.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:6px;">
+            <span>Comisión FiscalIA (5%)</span><span style="color:#854F0B;font-weight:600;">+ $928.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#111;padding-top:6px;border-top:1px solid #e0ddd5;">
+            <span>Total a cargar</span><span>$19,488.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bank account selector -->
+      <div style="margin-bottom:12px;">
+        <label style="font-size:10px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Cuenta de cargo:</label>
+        <div id="bank-bbva" onclick="selectBank('bbva')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid #185FA5;border-radius:8px;cursor:pointer;margin-bottom:7px;background:#EEF5FC;">
+          <div style="width:34px;height:22px;background:#004A97;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-size:9px;font-weight:900;color:#fff;letter-spacing:.05em;">BBVA</span>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:600;color:#111;">BBVA Bancomer</div>
+            <div style="font-size:10px;color:#666;">•••• •••• •••• 4821 · María G. Rodríguez</div>
+          </div>
+          <i class="ti ti-circle-check-filled" style="font-size:18px;color:#185FA5;" id="check-bbva"></i>
+        </div>
+        <div id="bank-banamex" onclick="selectBank('banamex')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e0ddd5;border-radius:8px;cursor:pointer;background:#fff;">
+          <div style="width:34px;height:22px;background:#C8102E;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-size:7px;font-weight:900;color:#fff;">CITI</span>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:600;color:#111;">Banamex / Citibanamex</div>
+            <div style="font-size:10px;color:#666;">•••• •••• •••• 3307 · María G. Rodríguez</div>
+          </div>
+          <i class="ti ti-circle" style="font-size:18px;color:#ccc;" id="check-banamex"></i>
+        </div>
+      </div>
+
+      <!-- Scheduled date -->
+      <div style="margin-bottom:14px;">
+        <label style="font-size:10px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Fecha de pago:</label>
+        <div style="display:flex;gap:7px;">
+          <div onclick="selectDate('hoy')" id="date-hoy" style="flex:1;padding:8px;border:2px solid #185FA5;border-radius:7px;text-align:center;cursor:pointer;background:#EEF5FC;">
+            <div style="font-size:11px;font-weight:700;color:#185FA5;">Hoy</div>
+            <div style="font-size:10px;color:#185FA5;">9 jun 2026</div>
+          </div>
+          <div onclick="selectDate('manana')" id="date-manana" style="flex:1;padding:8px;border:1px solid #e0ddd5;border-radius:7px;text-align:center;cursor:pointer;background:#fff;">
+            <div style="font-size:11px;font-weight:700;color:#666;">Mañana</div>
+            <div style="font-size:10px;color:#888;">10 jun 2026</div>
+          </div>
+          <div onclick="selectDate('plazo')" id="date-plazo" style="flex:1;padding:8px;border:1px solid #e0ddd5;border-radius:7px;text-align:center;cursor:pointer;background:#fff;">
+            <div style="font-size:11px;font-weight:700;color:#666;">Antes del vencimiento</div>
+            <div style="font-size:10px;color:#A32D2D;">17 jul 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Consent -->
+      <div style="background:#FAEEDA;border:1px solid #EF9F27;border-radius:7px;padding:9px 12px;margin-bottom:14px;display:flex;align-items:flex-start;gap:7px;">
+        <i class="ti ti-info-circle" style="font-size:14px;color:#854F0B;flex-shrink:0;margin-top:1px;"></i>
+        <div style="font-size:10px;color:#633806;line-height:1.5;">Al confirmar, autorizas a FiscalIA a realizar la transferencia bancaria de <strong>$19,488.00 MXN</strong> desde tu cuenta seleccionada hacia el SAT usando las líneas de captura oficiales. La comisión de 5% ($928 MXN) cubre el servicio de gestión y confirmación de pago.</div>
+      </div>
+
+      <!-- Actions -->
+      <button onclick="showModalStep(5)" style="width:100%;background:#1D9E75;color:#fff;border:none;border-radius:7px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;margin-bottom:8px;">
+        <i class="ti ti-credit-card" style="font-size:15px;"></i> Confirmar y pagar $19,488.00
+      </button>
+      <button onclick="showModalStep(3)" style="width:100%;background:#fafaf8;color:#666;border:1px solid #e0ddd5;border-radius:7px;padding:9px;font-size:12px;cursor:pointer;font-family:inherit;">
+        Cancelar — pagaré yo mismo
+      </button>
+    </div>
+
+    <!-- Step 5: payment processing + confirmation -->
+    <div id="modal-step-5" style="display:none;padding:36px 20px;text-align:center;">
+      <div id="pay-loading" style="">
+        <div style="width:52px;height:52px;border:4px solid #EAF3DE;border-top-color:#1D9E75;border-radius:50%;margin:0 auto 16px;animation:spin 1s linear infinite;"></div>
+        <div style="font-size:14px;font-weight:700;color:#111;margin-bottom:6px;" id="pay-loading-msg">Iniciando transferencia…</div>
+        <div style="font-size:11px;color:#888;" id="pay-loading-sub">Conectando con tu banco</div>
+      </div>
+      <div id="pay-success" style="display:none;">
+        <div style="width:60px;height:60px;background:#EAF3DE;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;">
+          <i class="ti ti-check" style="font-size:30px;color:#27500A;"></i>
+        </div>
+        <div style="font-size:16px;font-weight:700;color:#111;margin-bottom:6px;">¡Pago realizado!</div>
+        <div style="font-size:11px;color:#666;margin-bottom:20px;">La transferencia al SAT fue completada exitosamente.</div>
+        <div style="background:#fafaf8;border:1px solid #e0ddd5;border-radius:9px;padding:12px 14px;text-align:left;margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;"><span style="color:#888;">ISR pagado</span><span style="font-weight:600;color:#111;">$15,240.00 ✓</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;"><span style="color:#888;">IVA pagado</span><span style="font-weight:600;color:#111;">$3,320.00 ✓</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #e0ddd5;"><span style="color:#888;">Comisión FiscalIA</span><span style="font-weight:600;color:#111;">$928.00</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;"><span style="color:#111;">Total cargado</span><span style="color:#111;">$19,488.00</span></div>
+          <div style="margin-top:8px;font-size:10px;color:#888;">Referencia: <strong>FSCLIA-2026-06-00391</strong> · 9 jun 2026, 11:24 am</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="downloadAcuse()" style="flex:1;background:#fafaf8;color:#185FA5;border:1px solid #185FA5;border-radius:7px;padding:9px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:inherit;">
+            <i class="ti ti-download" style="font-size:13px;"></i> Comprobante
+          </button>
+          <button onclick="closeModal()" style="flex:1;background:#185FA5;color:#fff;border:none;border-radius:7px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+            Listo
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end modal -->
+</div><!-- end overlay -->
+
+<style>
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+
+<script>
+/* ─── CAPTCHA ENGINE ─── */
+const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+let currentCaptcha = '';
+
+function randomChar() {
+  return CHARS[Math.floor(Math.random() * CHARS.length)];
+}
+
+function randomColor() {
+  const colors = ['#1D4ED8','#7C3AED','#059669','#DC2626','#D97706','#0369A1','#BE185D'];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function refreshCaptcha() {
+  currentCaptcha = Array.from({length: 6}, randomChar).join('');
+  const display = document.getElementById('captcha-display');
+  display.innerHTML = '';
+  [...currentCaptcha].forEach((ch, i) => {
+    const span = document.createElement('span');
+    const rotate = (Math.random() * 30 - 15).toFixed(0);
+    const size = 15 + Math.floor(Math.random() * 7);
+    span.textContent = ch;
+    span.style.cssText = `
+      display:inline-block;
+      color:#fff;
+      background:${randomColor()};
+      width:${size + 8}px;height:${size + 8}px;
+      border-radius:50%;
+      font-size:${size}px;
+      font-weight:700;
+      line-height:${size + 8}px;
+      text-align:center;
+      transform:rotate(${rotate}deg);
+      margin:0 1px;
+      font-family:-apple-system,sans-serif;
+      user-select:none;
+    `;
+    display.appendChild(span);
+  });
+  document.getElementById('inp-captcha').value = '';
+  document.getElementById('captcha-err').style.display = 'none';
+}
+
+function validateCaptchaInput() {
+  document.getElementById('captcha-err').style.display = 'none';
+}
+
+/* ─── MODAL OPEN/CLOSE ─── */
+function openEfirmaModal() {
+  document.getElementById('efirma-overlay').style.display = 'flex';
+  showModalStep(1);
+  refreshCaptcha();
+  document.getElementById('inp-pwd').value = '';
+}
+
+function closeModal() {
+  document.getElementById('efirma-overlay').style.display = 'none';
+}
+
+// Close on overlay click
+document.getElementById('efirma-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+function showModalStep(n) {
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('modal-step-' + i);
+    if (el) el.style.display = n === i ? (i === 2 || i === 5 ? 'block' : 'block') : 'none';
+  }
+  if (n === 5) startPaymentAnimation();
+}
+
+/* ─── BANK SELECTION ─── */
+let selectedBank = 'bbva';
+function selectBank(b) {
+  selectedBank = b;
+  const banks = ['bbva', 'banamex'];
+  banks.forEach(id => {
+    const el = document.getElementById('bank-' + id);
+    const chk = document.getElementById('check-' + id);
+    if (id === b) {
+      el.style.border = '2px solid #185FA5';
+      el.style.background = '#EEF5FC';
+      chk.className = 'ti ti-circle-check-filled';
+      chk.style.color = '#185FA5';
+    } else {
+      el.style.border = '1px solid #e0ddd5';
+      el.style.background = '#fff';
+      chk.className = 'ti ti-circle';
+      chk.style.color = '#ccc';
+    }
+  });
+}
+
+/* ─── DATE SELECTION ─── */
+let selectedDate = 'hoy';
+function selectDate(d) {
+  selectedDate = d;
+  const dates = ['hoy', 'manana', 'plazo'];
+  dates.forEach(id => {
+    const el = document.getElementById('date-' + id);
+    if (id === d) {
+      el.style.border = '2px solid #185FA5';
+      el.style.background = '#EEF5FC';
+      el.querySelector('div').style.color = '#185FA5';
+    } else {
+      el.style.border = '1px solid #e0ddd5';
+      el.style.background = '#fff';
+      el.querySelector('div').style.color = '#666';
+    }
+  });
+}
+
+/* ─── PAYMENT ANIMATION ─── */
+function startPaymentAnimation() {
+  document.getElementById('pay-loading').style.display = 'block';
+  document.getElementById('pay-success').style.display = 'none';
+  const steps = [
+    [900,  'Iniciando transferencia…',          'Conectando con tu banco'],
+    [1200, 'Autorizando con BBVA…',             'Verificando disponibilidad de fondos'],
+    [1100, 'Enviando pago ISR al SAT…',         '$15,240.00 → SAT · línea de captura 01'],
+    [1000, 'Enviando pago IVA al SAT…',         '$3,320.00 → SAT · línea de captura 02'],
+    [800,  'Confirmando recepción SAT…',        'Obteniendo comprobante de pago'],
+  ];
+  let delay = 0;
+  steps.forEach(([ms, msg, sub]) => {
+    delay += ms;
+    setTimeout(() => {
+      document.getElementById('pay-loading-msg').textContent = msg;
+      document.getElementById('pay-loading-sub').textContent = sub;
+    }, delay);
+  });
+  setTimeout(() => {
+    document.getElementById('pay-loading').style.display = 'none';
+    document.getElementById('pay-success').style.display = 'block';
+  }, delay + 700);
+}
+
+/* ─── PASSWORD TOGGLE ─── */
+function togglePwd() {
+  const inp = document.getElementById('inp-pwd');
+  const eye = document.getElementById('pwd-eye');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    eye.className = 'ti ti-eye';
+  } else {
+    inp.type = 'password';
+    eye.className = 'ti ti-eye-off';
+  }
+}
+
+/* ─── SUBMIT ─── */
+function submitEfirma() {
+  const pwd = document.getElementById('inp-pwd').value.trim();
+  const captcha = document.getElementById('inp-captcha').value.trim().toUpperCase();
+
+  if (!pwd) {
+    document.getElementById('inp-pwd').style.borderColor = '#E24B4A';
+    document.getElementById('inp-pwd').focus();
+    return;
+  }
+  document.getElementById('inp-pwd').style.borderColor = '#e0ddd5';
+
+  if (captcha !== currentCaptcha) {
+    document.getElementById('captcha-err').style.display = 'block';
+    document.getElementById('inp-captcha').style.borderColor = '#E24B4A';
+    refreshCaptcha();
+    return;
+  }
+  document.getElementById('inp-captcha').style.borderColor = '#e0ddd5';
+  document.getElementById('captcha-err').style.display = 'none';
+
+  // Step 2 – loading sequence
+  showModalStep(2);
+  const steps = [
+    [800,  'Conectando con el SAT…',           'Autenticando con tus credenciales'],
+    [1800, 'Validando e.firma…',                'Verificando firma electrónica avanzada'],
+    [1400, 'Enviando declaración ISR…',         'Pago provisional junio 2026 · $15,240.00'],
+    [1200, 'Enviando declaración IVA…',         'IVA definitivo junio 2026 · $3,320.00'],
+    [900,  'Generando acuses de recibo…',       'El SAT está procesando tu declaración'],
+  ];
+  let delay = 0;
+  steps.forEach(([ms, msg, sub]) => {
+    delay += ms;
+    setTimeout(() => {
+      document.getElementById('loading-msg').textContent = msg;
+      document.getElementById('loading-sub').textContent = sub;
+    }, delay);
+  });
+  setTimeout(() => showModalStep(3), delay + 600);
+}
+
+function downloadAcuse() {
+  alert('Los acuses han sido enviados a tu buzón tributario y al correo registrado en el SAT.');
+}
+
+function navigate(id, el) {
+  // All screens back to dashboard only (other screens not built yet)
+  showScreen('dashboard');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else document.getElementById('nav-dashboard').classList.add('active');
+}
+
+function goToDeclaration() {
+  showScreen('declaracion');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-isr').classList.add('active');
+  document.getElementById('main-area').scrollTop = 0;
+}
+
+function goToDashboard() {
+  showScreen('dashboard');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-dashboard').classList.add('active');
+  document.getElementById('main-area').scrollTop = 0;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+</script>
+</body>
+</html>
